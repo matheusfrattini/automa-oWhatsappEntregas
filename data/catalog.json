@@ -1,0 +1,82 @@
+[
+  {
+    "id": "pao-frances",
+    "name": "Pão francês",
+    "description": "Pão francês fresco, assado no dia",
+    "priceCents": 150,
+    "unit": "unidade",
+    "available": true
+  },
+  {
+    "id": "pao-de-forma",
+    "name": "Pão de forma integral",
+    "description": "Pão de forma integral, fatiado",
+    "priceCents": 990,
+    "unit": "pacote (500g)",
+    "available": true
+  },
+  {
+    "id": "leite-integral",
+    "name": "Leite integral",
+    "description": "Leite integral pasteurizado",
+    "priceCents": 550,
+    "unit": "litro",
+    "available": true
+  },
+  {
+    "id": "cafe-torrado",
+    "name": "Café torrado e moído",
+    "description": "Café torrado e moído, torra média",
+    "priceCents": 1290,
+    "unit": "pacote (500g)",
+    "available": true
+  },
+  {
+    "id": "ovos-brancos",
+    "name": "Ovos brancos",
+    "description": "Ovos brancos tipo grande",
+    "priceCents": 1190,
+    "unit": "dúzia",
+    "available": true
+  },
+  {
+    "id": "manteiga-com-sal",
+    "name": "Manteiga com sal",
+    "description": "Manteiga com sal, embalagem tradicional",
+    "priceCents": 890,
+    "unit": "pote (200g)",
+    "available": true
+  },
+  {
+    "id": "queijo-minas",
+    "name": "Queijo minas frescal",
+    "description": "Queijo minas frescal fatiado na hora",
+    "priceCents": 1690,
+    "unit": "kg",
+    "available": true
+  },
+  {
+    "id": "presunto-fatiado",
+    "name": "Presunto fatiado",
+    "description": "Presunto cozido fatiado na hora",
+    "priceCents": 1490,
+    "unit": "kg",
+    "available": true
+  },
+  {
+    "id": "bolo-fuba",
+    "name": "Bolo de fubá",
+    "description": "Bolo de fubá cremoso, fatia",
+    "priceCents": 690,
+    "unit": "fatia",
+    "available": true
+  },
+  {
+    "id": "suco-laranja",
+    "name": "Suco de laranja natural",
+    "description": "Suco de laranja natural, feito na hora",
+    "priceCents": 850,
+    "unit": "litro",
+    "available": false
+  }
+]
