@@ -15,4 +15,8 @@ export class InMemoryConversationRepository implements ConversationRepository {
   async save(context: ConversationContext): Promise<void> {
     this.conversations.set(context.customerId, context);
   }
+
+  async listHandoff(): Promise<ConversationContext[]> {
+    return [...this.conversations.values()].filter((c) => c.isHandoff);
+  }
 }

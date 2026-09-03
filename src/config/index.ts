@@ -34,6 +34,8 @@ export interface AppConfig {
     minConfidence: number;
     maxCandidates: number;
   };
+  dbPath: string;
+  webSimulatorPort: number;
 }
 
 function requireEnvNumber(env: NodeJS.ProcessEnv, name: string, fallback?: number): number {
@@ -96,5 +98,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       minConfidence: requireEnvNumber(env, "ADDRESS_MIN_CONFIDENCE", 0.4),
       maxCandidates: requireEnvNumber(env, "ADDRESS_MAX_CANDIDATES", 3),
     },
+    dbPath: env.DB_PATH ?? "./data/app.db",
+    webSimulatorPort: requireEnvNumber(env, "WEB_SIMULATOR_PORT", 3000),
   };
 }

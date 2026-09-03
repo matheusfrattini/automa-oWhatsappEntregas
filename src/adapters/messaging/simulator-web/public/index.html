@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Simulador de WhatsApp — Padaria</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #ece5dd; margin: 0; padding: 16px; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toolbar input { padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+  .toolbar button { padding: 6px 12px; border: none; border-radius: 4px; background: #075e54; color: white; cursor: pointer; }
+  .boards { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .chat { width: 320px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .chat-header { background: #075e54; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+  .chat-header .handoff-badge { background: #d32f2f; font-size: 11px; padding: 2px 6px; border-radius: 8px; display: none; }
+  .chat-messages { height: 320px; overflow-y: auto; padding: 8px; background: #e5ddd5; display: flex; flex-direction: column; gap: 6px; }
+  .msg { max-width: 80%; padding: 6px 10px; border-radius: 8px; font-size: 13px; white-space: pre-wrap; }
+  .msg.customer { align-self: flex-end; background: #dcf8c6; }
+  .msg.bot { align-self: flex-start; background: white; }
+  .chat-input { display: flex; border-top: 1px solid #ddd; }
+  .chat-input input { flex: 1; border: none; padding: 8px; font-size: 13px; }
+  .chat-input button { border: none; background: #075e54; color: white; padding: 0 14px; cursor: pointer; }
+  .panel { width: 320px; background: white; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .panel h2 { font-size: 14px; margin: 0 0 8px; }
+  .handoff-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+  .handoff-item button { border: none; background: #075e54; color: white; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+  .empty { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>Simulador de WhatsApp — Padaria (múltiplos clientes em paralelo)</h1>
+  <div class="toolbar">
+    <input id="new-customer-id" placeholder="id do novo cliente (ex: cliente1)" />
+    <button id="add-customer">Novo chat</button>
+  </div>
+  <div class="boards" id="boards">
+    <div class="panel">
+      <h2>Atendente — conversas em handoff</h2>
+      <div id="handoff-list" class="empty">Nenhuma conversa em handoff.</div>
+    </div>
+  </div>
+
+<script>
+const boards = document.getElementById("boards");
+const chats = new Map(); // customerId -> { messagesEl }
+
+function createChatPanel(customerId) {
+  if (chats.has(customerId)) return;
+
+  const chat = document.createElement("div");
+  chat.className = "chat";
+  chat.innerHTML = `
+    <div class="chat-header">
+      <span>${customerId}</span>
+      <span class="handoff-badge">EM ATENDIMENTO HUMANO</span>
+    </div>
+    <div class="chat-messages"></div>
+    <div class="chat-input">
+      <input placeholder="Digite uma mensagem..." />
+      <button>Enviar</button>
+    </div>
+  `;
+  boards.insertBefore(chat, boards.firstChild);
+
+  const messagesEl = chat.querySelector(".chat-messages");
+  const inputEl = chat.querySelector("input");
+  const buttonEl = chat.querySelector("button");
+  const badgeEl = chat.querySelector(".handoff-badge");
+
+  chats.set(customerId, { messagesEl, badgeEl });
+
+  function appendMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = "msg " + sender;
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  async function send() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    inputEl.value = "";
+    appendMessage(text, "customer");
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customerId, text }),
+    });
+    const data = await res.json();
+    for (const reply of data.replies) appendMessage(reply, "bot");
+    refreshHandoffs();
+  }
+
+  buttonEl.addEventListener("click", send);
+  inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
+}
+
+document.getElementById("add-customer").addEventListener("click", () => {
+  const input = document.getElementById("new-customer-id");
+  const id = input.value.trim();
+  if (!id) return;
+  createChatPanel(id);
+  input.value = "";
+});
+
+async function refreshHandoffs() {
+  const res = await fetch("/api/handoffs");
+  const data = await res.json();
+  const listEl = document.getElementById("handoff-list");
+
+  for (const [customerId, { badgeEl }] of chats) {
+    badgeEl.style.display = data.customerIds.includes(customerId) ? "inline-block" : "none";
+  }
+
+  if (data.customerIds.length === 0) {
+    listEl.className = "empty";
+    listEl.textContent = "Nenhuma conversa em handoff.";
+    return;
+  }
+  listEl.className = "";
+  listEl.innerHTML = "";
+  for (const customerId of data.customerIds) {
+    const item = document.createElement("div");
+    item.className = "handoff-item";
+    item.innerHTML = `<span>${customerId}</span><button>Devolver ao bot</button>`;
+    item.querySelector("button").addEventListener("click", async () => {
+      await fetch("/api/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId }),
+      });
+      refreshHandoffs();
+    });
+    listEl.appendChild(item);
+  }
+}
+
+createChatPanel("cliente1");
+refreshHandoffs();
+setInterval(refreshHandoffs, 4000);
+</script>
+</body>
+</html>
