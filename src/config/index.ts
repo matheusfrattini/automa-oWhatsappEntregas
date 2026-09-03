@@ -25,6 +25,14 @@ export interface AppConfig {
   ors: {
     apiKey: string;
     baseUrl: string;
+    profile: string;
+    geocodingBoundaryCountry: string;
+    timeoutMs: number;
+    retries: number;
+  };
+  address: {
+    minConfidence: number;
+    maxCandidates: number;
   };
 }
 
@@ -79,6 +87,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ors: {
       apiKey: env.ORS_API_KEY ?? "",
       baseUrl: env.ORS_BASE_URL ?? "https://api.openrouteservice.org",
+      profile: env.ORS_PROFILE ?? "driving-car",
+      geocodingBoundaryCountry: env.ORS_GEOCODING_BOUNDARY_COUNTRY ?? "BR",
+      timeoutMs: requireEnvNumber(env, "ORS_TIMEOUT_MS", 5000),
+      retries: requireEnvNumber(env, "ORS_RETRIES", 2),
+    },
+    address: {
+      minConfidence: requireEnvNumber(env, "ADDRESS_MIN_CONFIDENCE", 0.4),
+      maxCandidates: requireEnvNumber(env, "ADDRESS_MAX_CANDIDATES", 3),
     },
   };
 }
