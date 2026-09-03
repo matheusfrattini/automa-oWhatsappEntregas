@@ -46,3 +46,18 @@ export class GeocodingUnavailableError extends Error {
     this.cause = cause;
   }
 }
+
+export class RouteOptimizationUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super("Route optimization provider is unavailable");
+    this.name = "RouteOptimizationUnavailableError";
+    this.cause = cause;
+  }
+}
+
+export class RouteOptimizationIncompleteError extends Error {
+  constructor(public readonly unassignedOrderIds: string[]) {
+    super(`Route optimization left orders unassigned: ${unassignedOrderIds.join(", ")}`);
+    this.name = "RouteOptimizationIncompleteError";
+  }
+}
